@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Student_Drawing_System.Views.StudentDrawingView"
+             Title="System losowania ucznia">
+    <VerticalStackLayout Padding="20" Spacing="20">
+
+        <VerticalStackLayout Spacing="10">
+            <Label Text="Dodaj nowego ucznia" 
+                   FontSize="18" 
+                   FontAttributes="Bold"/>
+            <Entry x:Name="NameEntry"
+                   Placeholder="Imię"
+                   ClearButtonVisibility="WhileEditing"/>
+            <Entry x:Name="FamilyNameEntry"
+                   Placeholder="Nazwisko"
+                   ClearButtonVisibility="WhileEditing"/>
+            <Entry x:Name="ClassNameEntry"
+                   Placeholder="Klasa (np. 1A)"
+                   ClearButtonVisibility="WhileEditing"/>
+            <Button x:Name="AddStudent"
+                    Clicked="AddStudentBtnClicked"
+                    Text="Dodaj ucznia"
+                    TextColor="White"
+                    CornerRadius="5"
+                    HeightRequest="50"/>
+            
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Spacing="10">
+            <Label Text="Losuj ucznia" 
+                   FontSize="18" 
+                   FontAttributes="Bold"/>
+            <Entry x:Name="DrawClassEntry"
+                   Placeholder="Klasa do losowania (np. 1A)"
+                   ClearButtonVisibility="WhileEditing"/>
+            <Button x:Name="DrawStudent"
+                    Clicked="DrawStudentBtnClicked"
+                    Text="Losuj ucznia"
+                    TextColor="White"
+                    CornerRadius="5"
+                    HeightRequest="50"/>
+        </VerticalStackLayout>
+
+        <Label Text="Lista uczniów" 
+               FontSize="18" 
+               FontAttributes="Bold"
+               Margin="0,10,0,0"/>
+        <ScrollView HeightRequest="300">
+            <CollectionView x:Name="StudentsCollectionView"
+                        SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <HorizontalStackLayout Spacing="10" Padding="5">
+                            <Label Text="{Binding ClassName}" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               WidthRequest="50"/>
+                            <Label Text="{Binding Name}" 
+                               VerticalOptions="Center"/>
+                            <Label Text="{Binding FamilyName}" 
+                               VerticalOptions="Center"/>
+                            <Button Text="Usuń"
+                                BackgroundColor="Red"
+                                TextColor="White"
+                                Clicked="DeleteStudent_Clicked"
+                                BindingContext="{Binding}"
+                                HeightRequest="40"/>
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+    </VerticalStackLayout>
+</ContentPage>
