@@ -38,7 +38,7 @@ public partial class StudentDrawingView : ContentPage
             string.IsNullOrWhiteSpace(FamilyNameEntry.Text) ||
             string.IsNullOrWhiteSpace(ClassNameEntry.Text))
         {
-            await DisplayAlertAsync("B³¹d", "Wype³nij wszystkie pola!", "OK");
+            await DisplayAlertAsync("BÂ³Â¹d", "WypeÂ³nij wszystkie pola!", "OK");
             return;
         }
 
@@ -56,31 +56,14 @@ public partial class StudentDrawingView : ContentPage
         FamilyNameEntry.Text = "";
         ClassNameEntry.Text = "";
 
-        await DisplayAlertAsync("Sukces", "Uczeñ dodany!", "OK");
+        await DisplayAlertAsync("Sukces", "UczeÃ± dodany!", "OK");
     }
-
-    private async void DeleteStudent_Clicked(object sender, EventArgs e)
-    {
-        var student = (StudentModel)((Button)sender).BindingContext;
-
-        bool confirm = await DisplayAlertAsync("Potwierdzenie",
-            $"Usun¹æ {student.Name} {student.FamilyName}?", "Tak", "Nie");
-
-        if (confirm)
-        {
-            allStudents.Remove(student);
-            await SaveToFile();
-            RefreshList();
-            await DisplayAlertAsync("Sukces", "Uczeñ usuniêty!", "OK");
-        }
-    }
-
-
+    
     private async void DrawStudentBtnClicked(object sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(DrawClassEntry.Text))
         {
-            await DisplayAlertAsync("B³¹d", "Wpisz klasê!", "OK");
+            await DisplayAlertAsync("BÂ³Â¹d", "Wpisz klasÃª!", "OK");
             return;
         }
 
@@ -88,7 +71,7 @@ public partial class StudentDrawingView : ContentPage
 
         if (studentsInClass.Count == 0)
         {
-            await DisplayAlertAsync("B³¹d", "Brak uczniów w tej klasie!", "OK");
+            await DisplayAlertAsync("BÂ³Â¹d", "Brak uczniÃ³w w tej klasie!", "OK");
             return;
         }
 
@@ -132,5 +115,21 @@ public partial class StudentDrawingView : ContentPage
             }
         }
         return students;
+    }
+    
+    private async void DeleteStudentBtnClicked(object sender, EventArgs e)
+    {
+        var student = (StudentModel)((Button)sender).BindingContext;
+
+        bool confirm = await DisplayAlertAsync("Potwierdzenie",
+            $"UsunÂ¹Ã¦ {student.Name} {student.FamilyName}?", "Tak", "Nie");
+
+        if (confirm)
+        {
+            allStudents.Remove(student);
+            await SaveToFile();
+            RefreshList();
+            await DisplayAlertAsync("Sukces", "UczeÃ± usuniÃªty!", "OK");
+        }
     }
 }
