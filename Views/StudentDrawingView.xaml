@@ -63,7 +63,7 @@
                             <Button Text="Usuń"
                                 BackgroundColor="Red"
                                 TextColor="White"
-                                Clicked="DeleteStudent_Clicked"
+                                Clicked="DeleteStudentBtnClicked"
                                 BindingContext="{Binding}"
                                 HeightRequest="40"/>
                         </HorizontalStackLayout>
