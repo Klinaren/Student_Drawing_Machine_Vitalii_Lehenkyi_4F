@@ -1,29 +1,36 @@
-using Student_Drawing_System.Models;
+using Student_Drawing_Machine.Models;
+using System.Globalization;
+using System.Threading.Tasks;
 
-namespace Student_Drawing_System.Views;
+namespace Student_Drawing_Machine.Views;
+
 
 public partial class StudentDrawingView : ContentPage
 {
     private List<StudentModel> allStudents = new List<StudentModel>();
     private string filePath;
+	public StudentDrawingView()
+	{
+		InitializeComponent();
 
-    public StudentDrawingView()
-    {
-        InitializeComponent();
-        filePath = Path.Combine(FileSystem.AppDataDirectory, "students.txt");
+        #if WINDOWS
+    
+            filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop), 
+                "students.txt"
+            );
+        #else
+        
+                filePath = Path.Combine(FileSystem.AppDataDirectory, "students.txt");
+        #endif
+
         LoadData();
-    }
-
-    private async void LoadData()
-    {
-        allStudents = await ReadFromFile();
-        RefreshList();
-    }
+	}
 
     private void RefreshList()
     {
         var collectionView = this.FindByName<CollectionView>("StudentsCollectionView");
-        if (collectionView is null)
+        if(collectionView is null)
         {
             return;
         }
@@ -32,104 +39,170 @@ public partial class StudentDrawingView : ContentPage
         collectionView.ItemsSource = allStudents;
     }
 
-    private async void AddStudentBtnClicked(object sender, EventArgs e)
+    private async Task<List<StudentModel>> ReadFromFile()
     {
-        if (string.IsNullOrWhiteSpace(NameEntry.Text) ||
-            string.IsNullOrWhiteSpace(FamilyNameEntry.Text) ||
-            string.IsNullOrWhiteSpace(ClassNameEntry.Text))
+        List<StudentModel> students = new List<StudentModel>();
+
+        if (!File.Exists(filePath))
         {
-            await DisplayAlertAsync("B³¹d", "Wype³nij wszystkie pola!", "OK");
-            return;
+            return students;
         }
 
-        allStudents.Add(new StudentModel
+        using (StreamReader reader = new StreamReader(filePath)) 
         {
-            Name = NameEntry.Text,
-            FamilyName = FamilyNameEntry.Text,
-            ClassName = ClassNameEntry.Text
-        });
+            string currentClassName = null;
+            string line;
 
-        await SaveToFile();
-        RefreshList();
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrEmpty(line))
+                {
+                    continue;
+                }
 
-        NameEntry.Text = "";
-        FamilyNameEntry.Text = "";
-        ClassNameEntry.Text = "";
+                if(line.StartsWith("[KLASA:")&& line.EndsWith("]"))
+                {
+                    currentClassName = line.Substring(7, line.Length - 8);
+                } else if(currentClassName != null)
+                {
+                    string[] data = line.Split("|");
 
-        await DisplayAlertAsync("Sukces", "Uczeñ dodany!", "OK");
+                    if(data.Length == 2)
+                    {
+                        students.Add(new StudentModel
+                        {
+                            Name = data[0],
+                            FamilyName = data[1],
+                            ClassName = currentClassName
+                        });
+                    }
+                }
+
+            }
+        }
+        return students;
     }
-    
-    private async void DrawStudentBtnClicked(object sender, EventArgs e)
+    private async void LoadData()
     {
-        if (string.IsNullOrWhiteSpace(DrawClassEntry.Text))
-        {
-            await DisplayAlertAsync("B³¹d", "Wpisz klasê!", "OK");
-            return;
-        }
-
-        var studentsInClass = allStudents.Where(s => s.ClassName == DrawClassEntry.Text).ToList();
-
-        if (studentsInClass.Count == 0)
-        {
-            await DisplayAlertAsync("B³¹d", "Brak uczniów w tej klasie!", "OK");
-            return;
-        }
-
-        var student = studentsInClass[new Random().Next(studentsInClass.Count)];
-        await DisplayAlertAsync("Wylosowano", $"{student.Name} {student.FamilyName}", "OK");
+        allStudents = await ReadFromFile();
+        StudentsCollectionView.ItemsSource = allStudents;
     }
 
     private async Task SaveToFile()
     {
         using (StreamWriter writer = new StreamWriter(filePath, false))
         {
-            foreach (var student in allStudents)
+
+            var groupedByClass = allStudents.GroupBy(s => s.ClassName);
+
+            foreach (var classGroup in groupedByClass)
             {
-                await writer.WriteLineAsync($"{student.Name}|{student.FamilyName}|{student.ClassName}");
-            }
-        }
-    }
+                await writer.WriteLineAsync($"[KLASA:{classGroup.Key}]");
 
-    private async Task<List<StudentModel>> ReadFromFile()
-    {
-        List<StudentModel> students = new List<StudentModel>();
-
-        if (!File.Exists(filePath))
-            return students;
-
-        using (StreamReader reader = new StreamReader(filePath))
-        {
-            string line;
-            while ((line = await reader.ReadLineAsync()) != null)
-            {
-                string[] data = line.Split('|');
-                if (data.Length == 3)
+                foreach (var student in allStudents)
                 {
-                    students.Add(new StudentModel
-                    {
-                        Name = data[0],
-                        FamilyName = data[1],
-                        ClassName = data[2]
-                    });
+                    await writer.WriteLineAsync($"{student.Name}|{student.FamilyName}");
                 }
+                await writer.WriteLineAsync();
             }
         }
-        return students;
     }
-    
+
+    private async void AddStudentBtnClicked(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(NameEntry.Text) ||
+           string.IsNullOrWhiteSpace(FamilyNameEntry.Text) ||
+           string.IsNullOrWhiteSpace(ClassEntry.Text))
+        {
+            await DisplayAlert("Błąd", "Wypełnij wszystkie pola!", "OK");
+            return;
+        }
+
+        var student = new StudentModel
+        {
+            Name = NameEntry.Text,
+            FamilyName = FamilyNameEntry.Text,
+            ClassName = ClassEntry.Text
+        };
+
+        allStudents.Add(student);
+        await SaveToFile();
+
+        StudentsCollectionView.ItemsSource = null;
+        StudentsCollectionView.ItemsSource = allStudents;
+
+        NameEntry.Text = "";
+        FamilyNameEntry.Text = "";
+        ClassEntry.Text = "";
+
+        await DisplayAlert("Sukces", "Uczeń został dodany!", "OK");
+    }
+    private async void DrawStudentBtnClicked(object sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(DrawClassEntry.Text))
+        {
+            await DisplayAlert("Błąd", "Wpisz klasę!", "OK");
+            return;
+        }
+
+        var studentsInClass = allStudents.Where(s => s.ClassName == DrawClassEntry.Text).ToList();
+
+        if(studentsInClass.Count == 0)
+        {
+            await DisplayAlert("Błąd", "Brak uczniów w klasie!", "OK");
+            return;
+        }
+
+        var student = studentsInClass[new Random().Next(studentsInClass.Count)];
+
+        await DisplayAlert("Wylosowano", $"{student.Name} {student.FamilyName}", "OK");
+
+    }
+    private async void EditStudentBtnClicked(object sender, EventArgs e)
+    {
+        var student = (StudentModel)((Button)sender).BindingContext;
+
+        string newName = await DisplayPromptAsync("Edycja", "Nowe imię: ", initialValue: student.Name);
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        string newFamilyName = await DisplayPromptAsync("Edycja", "Nowe nazwisko: ", initialValue: student.FamilyName);
+        if (string.IsNullOrWhiteSpace(newFamilyName)) 
+        {
+            return;
+        }
+
+        string newClassName = await DisplayPromptAsync("Edycja", "Nowa klasa: ", initialValue: student.ClassName);
+        if (string.IsNullOrWhiteSpace(newClassName))
+        {
+            return;
+        }
+
+        student.Name = newName;
+        student.FamilyName = newFamilyName;
+        student.ClassName = newClassName;
+
+        await SaveToFile();
+        RefreshList();
+
+        await DisplayAlert("Sukces", "Dane ucznia zostały zaktualizowane!", "OK");
+
+    }
     private async void DeleteStudentBtnClicked(object sender, EventArgs e)
     {
         var student = (StudentModel)((Button)sender).BindingContext;
 
-        bool confirm = await DisplayAlertAsync("Potwierdzenie",
-            $"Usun¹æ {student.Name} {student.FamilyName}?", "Tak", "Nie");
+        bool confirm = await DisplayAlert("Potwierdzenie", $"Usunąć {student.Name} {student.FamilyName}?", "Tak", "Nie");
 
         if (confirm)
         {
             allStudents.Remove(student);
             await SaveToFile();
             RefreshList();
-            await DisplayAlertAsync("Sukces", "Uczeñ usuniêty!", "OK");
+            await DisplayAlert("Sukces", "Uczeń został usunięty!", "OK");
         }
     }
+
 }
