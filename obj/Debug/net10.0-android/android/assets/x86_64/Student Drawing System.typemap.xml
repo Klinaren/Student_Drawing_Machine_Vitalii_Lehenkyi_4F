@@ -1,0 +1,10 @@
+<api type="debug" assembly-name="Student Drawing System" mvid="9c9abdb516344ff0ade3358bd3356191">
+  <java-to-managed>
+    <entry java-name="crc64c3c1f8cd5d83c8c7/MainActivity" managed-name="Student_Drawing_System.MainActivity, Student Drawing System" managed-type-token-id="33554441" />
+    <entry java-name="crc64c3c1f8cd5d83c8c7/MainApplication" managed-name="Student_Drawing_System.MainApplication, Student Drawing System" managed-type-token-id="33554442" />
+  </java-to-managed>
+  <managed-to-java>
+    <entry java-name="crc64c3c1f8cd5d83c8c7/MainActivity" managed-name="Student_Drawing_System.MainActivity, Student Drawing System" managed-type-token-id="33554441" />
+    <entry java-name="crc64c3c1f8cd5d83c8c7/MainApplication" managed-name="Student_Drawing_System.MainApplication, Student Drawing System" managed-type-token-id="33554442" />
+  </managed-to-java>
+</api>
